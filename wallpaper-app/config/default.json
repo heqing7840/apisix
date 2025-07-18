@@ -1,0 +1,74 @@
+{
+  "app": {
+    "name": "Wallpaper Manager",
+    "version": "1.0.0",
+    "description": "Cross-platform wallpaper management application with Pexels integration"
+  },
+  "pexels": {
+    "baseUrl": "https://api.pexels.com/v1",
+    "videosUrl": "https://api.pexels.com/videos",
+    "defaultQuery": "nature photography",
+    "rateLimit": {
+      "requestsPerHour": 200,
+      "requestsPerMonth": 20000
+    },
+    "defaultParams": {
+      "size": "large",
+      "orientation": "landscape",
+      "perPage": 15
+    }
+  },
+  "download": {
+    "defaultPath": "~/Wallpapers/Downloads",
+    "cachePath": "~/Wallpapers/Cache",
+    "localPath": "~/Wallpapers/Local",
+    "maxCacheSize": 524288000,
+    "cacheExpiryDays": 30
+  },
+  "wallpaper": {
+    "supportedImageFormats": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
+    "supportedVideoFormats": [".mp4", ".mov", ".avi", ".mkv"],
+    "maxImageSize": 52428800,
+    "maxVideoSize": 209715200,
+    "thumbnailSize": {
+      "width": 280,
+      "height": 200
+    }
+  },
+  "autoChange": {
+    "enabled": false,
+    "intervals": [30, 60, 180, 720, 1440],
+    "defaultInterval": 60,
+    "randomOrder": true
+  },
+  "ui": {
+    "theme": "auto",
+    "language": "en",
+    "gridColumns": {
+      "min": 240,
+      "preferred": 280
+    },
+    "infiniteScroll": {
+      "enabled": true,
+      "threshold": 1000
+    }
+  },
+  "performance": {
+    "enableVideoWallpapers": true,
+    "videoFrameRate": 30,
+    "energySavingMode": false,
+    "maxConcurrentDownloads": 3
+  },
+  "privacy": {
+    "collectAnalytics": false,
+    "shareUsageData": false,
+    "enableCrashReporting": true
+  },
+  "shortcuts": {
+    "nextWallpaper": "CmdOrCtrl+Right",
+    "previousWallpaper": "CmdOrCtrl+Left",
+    "downloadWallpaper": "CmdOrCtrl+Down",
+    "openSettings": "CmdOrCtrl+,",
+    "search": "CmdOrCtrl+F"
+  }
+}
