@@ -10,7 +10,8 @@ class WallpaperApp {
     this.localWallpapers = [];
     this.favorites = [];
     this.settings = {};
-    
+    this.renderedCount = 0;
+
     this.init();
   }
 
@@ -114,7 +115,9 @@ class WallpaperApp {
     window.addEventListener('scroll', () => {
       if (this.currentTab === 'pexels' && !this.isLoading) {
         const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-        if (scrollTop + clientHeight >= scrollHeight - 1000) {
+        // Trigger loading when user is 500px from bottom
+        if (scrollTop + clientHeight >= scrollHeight - 500) {
+          console.log('Triggering infinite scroll load...');
           this.loadMorePexelsContent();
         }
       }
@@ -173,11 +176,20 @@ class WallpaperApp {
   async performSearch() {
     const searchInput = document.getElementById('searchInput');
     const query = searchInput.value.trim();
-    
+
     if (query) {
+      console.log('Performing search for:', query);
       this.searchQuery = query;
       this.currentPage = 1;
       this.wallpapers = [];
+      this.renderedCount = 0;
+      await this.loadPexelsContent();
+    } else {
+      // If empty search, use default query
+      this.searchQuery = 'nature photography';
+      this.currentPage = 1;
+      this.wallpapers = [];
+      this.renderedCount = 0;
       await this.loadPexelsContent();
     }
   }
@@ -186,47 +198,79 @@ class WallpaperApp {
     if (this.currentTab === 'pexels') {
       this.currentPage = 1;
       this.wallpapers = [];
+      this.renderedCount = 0;
       await this.loadPexelsContent();
     }
   }
 
   async loadPexelsContent() {
     if (this.isLoading) return;
-    
+
     this.isLoading = true;
     this.showLoading(true);
 
     try {
       let newContent = [];
-      
+
+      // Load photos if requested
       if (this.currentFilter.type === 'all' || this.currentFilter.type === 'photos') {
-        const photos = await window.electronAPI.getPexelsPhotos(this.searchQuery, this.currentPage);
-        newContent = [...newContent, ...photos.photos.map(photo => ({ ...photo, type: 'photo' }))];
-      }
-      
-      if (this.currentFilter.type === 'all' || this.currentFilter.type === 'videos') {
-        const videos = await window.electronAPI.getPexelsVideos(this.searchQuery, this.currentPage);
-        newContent = [...newContent, ...videos.videos.map(video => ({ ...video, type: 'video' }))];
-      }
+        try {
+          const photos = await window.electronAPI.getPexelsPhotos(
+            this.searchQuery,
+            this.currentPage,
+            30, // Increased from 15 to 30
+            this.currentFilter.orientation
+          );
 
-      // Filter by orientation
-      if (this.currentFilter.orientation !== 'all') {
-        newContent = newContent.filter(item => {
-          if (item.type === 'photo') {
-            return item.width > item.height ? 'landscape' : 'portrait';
+          if (photos && photos.photos && photos.photos.length > 0) {
+            newContent = [...newContent, ...photos.photos.map(photo => ({ ...photo, type: 'photo' }))];
+            console.log(`Loaded ${photos.photos.length} photos for page ${this.currentPage}`);
           }
-          return true; // Videos don't have orientation filter for now
-        });
+        } catch (error) {
+          console.error('Error loading photos:', error);
+        }
       }
 
+      // Load videos if requested
+      if (this.currentFilter.type === 'all' || this.currentFilter.type === 'videos') {
+        try {
+          const videos = await window.electronAPI.getPexelsVideos(
+            this.searchQuery,
+            this.currentPage,
+            30, // Increased from 15 to 30
+            this.currentFilter.orientation
+          );
+
+          if (videos && videos.videos && videos.videos.length > 0) {
+            newContent = [...newContent, ...videos.videos.map(video => ({ ...video, type: 'video' }))];
+            console.log(`Loaded ${videos.videos.length} videos for page ${this.currentPage}`);
+          }
+        } catch (error) {
+          console.error('Error loading videos:', error);
+        }
+      }
+
+      // Update wallpapers array
       if (this.currentPage === 1) {
         this.wallpapers = newContent;
       } else {
         this.wallpapers = [...this.wallpapers, ...newContent];
       }
 
+      console.log(`Total wallpapers after page ${this.currentPage}: ${this.wallpapers.length}`);
+
       this.renderPexelsGrid();
-      this.currentPage++;
+
+      // Only increment page if we got content
+      if (newContent.length > 0) {
+        this.currentPage++;
+      }
+
+      // Show message if no content found
+      if (newContent.length === 0 && this.currentPage === 1) {
+        this.showToast('No wallpapers found for this search', 'warning');
+      }
+
     } catch (error) {
       console.error('Failed to load Pexels content:', error);
       this.showToast('Failed to load wallpapers', 'error');
@@ -242,30 +286,72 @@ class WallpaperApp {
 
   renderPexelsGrid() {
     const grid = document.getElementById('pexelsGrid');
-    
+
     if (this.currentPage === 1) {
       grid.innerHTML = '';
+      this.renderedCount = 0;
     }
 
-    this.wallpapers.forEach((item, index) => {
-      if (this.currentPage > 1 && index < this.wallpapers.length - 15) {
-        return; // Skip already rendered items
-      }
+    // Only render new items that haven't been rendered yet
+    const startIndex = this.renderedCount || 0;
+    const newItems = this.wallpapers.slice(startIndex);
 
+    console.log(`Rendering ${newItems.length} new items (${startIndex} to ${this.wallpapers.length})`);
+
+    newItems.forEach((item) => {
       const wallpaperElement = this.createWallpaperElement(item);
       grid.appendChild(wallpaperElement);
     });
+
+    this.renderedCount = this.wallpapers.length;
+
+    // Show empty state if no wallpapers
+    if (this.wallpapers.length === 0 && this.currentPage === 1) {
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+          <p>No wallpapers found. Try a different search term or check your internet connection.</p>
+        </div>
+      `;
+    }
   }
 
   createWallpaperElement(item) {
     const div = document.createElement('div');
     div.className = 'wallpaper-item';
-    
-    const imageUrl = item.type === 'photo' ? item.src.medium : item.video_files[0].link;
-    const thumbnailUrl = item.type === 'photo' ? item.src.small : item.image;
-    
+
+    // Handle different content types
+    let thumbnailUrl, dimensions, contentType;
+
+    if (item.type === 'photo') {
+      thumbnailUrl = item.src?.small || item.src?.medium || '';
+      dimensions = `${item.width || ''}x${item.height || ''}`;
+      contentType = 'Photo';
+    } else if (item.type === 'video') {
+      thumbnailUrl = item.image || '';
+      // Get dimensions from the first video file
+      const videoFile = item.video_files?.[0];
+      dimensions = videoFile ? `${videoFile.width || ''}x${videoFile.height || ''}` : '';
+      contentType = 'Video';
+    } else {
+      thumbnailUrl = '';
+      dimensions = '';
+      contentType = 'Media';
+    }
+
+    // Add video indicator for videos
+    const videoIndicator = item.type === 'video' ? `
+      <div class="video-indicator">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; padding: 4px;">
+          <polygon points="5,3 19,12 5,21"></polygon>
+        </svg>
+      </div>
+    ` : '';
+
     div.innerHTML = `
-      <img src="${thumbnailUrl}" alt="${item.alt || 'Wallpaper'}" class="wallpaper-image" loading="lazy">
+      <div class="wallpaper-image-container" style="position: relative;">
+        <img src="${thumbnailUrl}" alt="${item.alt || 'Wallpaper'}" class="wallpaper-image" loading="lazy" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDI4MCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyODAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjJGMkY3Ii8+Cjx0ZXh0IHg9IjE0MCIgeT0iMTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOEU4RTkzIiBmb250LXNpemU9IjE0Ij5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pgo8L3N2Zz4K'">
+        ${videoIndicator}
+      </div>
       <div class="wallpaper-overlay">
         <div class="wallpaper-actions">
           <button class="primary-btn preview-btn" data-id="${item.id}" data-type="${item.type}">Preview</button>
@@ -278,8 +364,8 @@ class WallpaperApp {
         </div>
       </div>
       <div class="wallpaper-info">
-        <div class="wallpaper-photographer">Photo by ${item.photographer || 'Unknown'} on Pexels</div>
-        <div class="wallpaper-size">${item.width || ''}x${item.height || ''}</div>
+        <div class="wallpaper-photographer">${contentType} by ${item.photographer || 'Unknown'} on Pexels</div>
+        <div class="wallpaper-size">${dimensions}</div>
       </div>
     `;
 
@@ -440,19 +526,47 @@ class WallpaperApp {
 
   async downloadWallpaper(item, setAsWallpaper = false) {
     try {
-      const url = item.type === 'photo' ? item.src.original : item.video_files[0].link;
-      const filename = `${item.photographer || 'wallpaper'}_${item.id}.${item.type === 'photo' ? 'jpg' : 'mp4'}`;
-      
+      let url, filename, extension;
+
+      if (item.type === 'photo') {
+        url = item.src?.original || item.src?.large || item.src?.medium;
+        extension = 'jpg';
+      } else if (item.type === 'video') {
+        // Find the highest quality video file
+        const videoFiles = item.video_files || [];
+        const bestVideo = videoFiles.find(v => v.quality === 'hd') ||
+                         videoFiles.find(v => v.quality === 'sd') ||
+                         videoFiles[0];
+
+        if (!bestVideo) {
+          throw new Error('No video file available');
+        }
+
+        url = bestVideo.link;
+        extension = bestVideo.file_type?.includes('mp4') ? 'mp4' : 'mov';
+      } else {
+        throw new Error('Unknown media type');
+      }
+
+      if (!url) {
+        throw new Error('No download URL available');
+      }
+
+      filename = `${(item.photographer || 'wallpaper').replace(/[^a-zA-Z0-9]/g, '_')}_${item.id}.${extension}`;
+
+      console.log(`Downloading ${item.type}: ${url}`);
       const filePath = await window.electronAPI.downloadWallpaper(url, filename);
-      
-      if (setAsWallpaper) {
+
+      if (setAsWallpaper && item.type === 'photo') {
+        // Only set photos as wallpaper for now
         await this.setWallpaper(filePath);
         this.showToast('Wallpaper set successfully');
       } else {
-        this.showToast('Wallpaper downloaded successfully');
+        this.showToast(`${item.type === 'photo' ? 'Image' : 'Video'} downloaded successfully`);
       }
     } catch (error) {
-      this.showToast('Failed to download wallpaper', 'error');
+      console.error('Download error:', error);
+      this.showToast(`Failed to download ${item.type || 'media'}`, 'error');
     }
   }
 
@@ -470,27 +584,53 @@ class WallpaperApp {
     const container = document.getElementById('previewContainer');
     const title = document.getElementById('previewTitle');
     const attribution = document.getElementById('previewAttribution');
-    
-    title.textContent = item.alt || 'Wallpaper Preview';
-    attribution.innerHTML = `Photo by <a href="${item.photographer_url || '#'}" target="_blank">${item.photographer || 'Unknown'}</a> on <a href="https://www.pexels.com" target="_blank">Pexels</a>`;
-    
+
+    const contentType = item.type === 'photo' ? 'Photo' : 'Video';
+    title.textContent = item.alt || `${contentType} Preview`;
+    attribution.innerHTML = `${contentType} by <a href="${item.photographer_url || '#'}" target="_blank">${item.photographer || 'Unknown'}</a> on <a href="https://www.pexels.com" target="_blank">Pexels</a>`;
+
     if (item.type === 'photo') {
-      container.innerHTML = `<img src="${item.src.large}" alt="${item.alt || 'Wallpaper'}" class="preview-image">`;
-    } else {
-      container.innerHTML = `<video src="${item.video_files[0].link}" class="preview-video" controls></video>`;
+      const imageUrl = item.src?.large || item.src?.medium || item.src?.small;
+      container.innerHTML = `<img src="${imageUrl}" alt="${item.alt || 'Wallpaper'}" class="preview-image" style="max-width: 100%; max-height: 60vh; object-fit: contain;">`;
+    } else if (item.type === 'video') {
+      const videoFiles = item.video_files || [];
+      const bestVideo = videoFiles.find(v => v.quality === 'hd') ||
+                       videoFiles.find(v => v.quality === 'sd') ||
+                       videoFiles[0];
+
+      if (bestVideo) {
+        container.innerHTML = `
+          <video class="preview-video" controls style="max-width: 100%; max-height: 60vh;">
+            <source src="${bestVideo.link}" type="${bestVideo.file_type || 'video/mp4'}">
+            Your browser does not support the video tag.
+          </video>
+        `;
+      } else {
+        container.innerHTML = `<p>Video preview not available</p>`;
+      }
     }
-    
+
     // Set up action buttons
-    document.getElementById('setWallpaperBtn').onclick = () => {
+    const setWallpaperBtn = document.getElementById('setWallpaperBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    // Only show "Set as Wallpaper" for photos
+    if (item.type === 'video') {
+      setWallpaperBtn.style.display = 'none';
+    } else {
+      setWallpaperBtn.style.display = 'inline-flex';
+    }
+
+    setWallpaperBtn.onclick = () => {
       this.downloadWallpaper(item, true);
       this.closeModal('previewModal');
     };
-    
-    document.getElementById('downloadBtn').onclick = () => {
+
+    downloadBtn.onclick = () => {
       this.downloadWallpaper(item, false);
       this.closeModal('previewModal');
     };
-    
+
     this.openModal('previewModal');
   }
 

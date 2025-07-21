@@ -8,8 +8,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setSetting: (key, value) => ipcRenderer.invoke('set-setting', key, value),
 
   // Pexels API
-  getPexelsPhotos: (query, page) => ipcRenderer.invoke('get-pexels-photos', query, page),
-  getPexelsVideos: (query, page) => ipcRenderer.invoke('get-pexels-videos', query, page),
+  getPexelsPhotos: (query, page, perPage, orientation) => ipcRenderer.invoke('get-pexels-photos', query, page, perPage, orientation),
+  getPexelsVideos: (query, page, perPage, orientation) => ipcRenderer.invoke('get-pexels-videos', query, page, perPage, orientation),
 
   // Wallpaper management
   downloadWallpaper: (url, filename) => ipcRenderer.invoke('download-wallpaper', url, filename),

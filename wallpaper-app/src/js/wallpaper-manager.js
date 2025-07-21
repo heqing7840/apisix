@@ -95,9 +95,16 @@ class WallpaperManager {
     }, 100);
   }
 
-  async getPexelsPhotos(query = 'nature photography', page = 1, perPage = 15) {
+  async getPexelsPhotos(query = 'nature photography', page = 1, perPage = 30, orientation = 'landscape') {
     try {
-      const url = `${this.baseUrl}/search?query=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}&size=large&orientation=landscape`;
+      let url = `${this.baseUrl}/search?query=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}`;
+
+      // Add orientation filter if specified
+      if (orientation && orientation !== 'all') {
+        url += `&orientation=${orientation}`;
+      }
+
+      console.log('Fetching photos from:', url);
       return await this.makeRequest(url);
     } catch (error) {
       console.error('Error fetching Pexels photos:', error);
@@ -105,9 +112,16 @@ class WallpaperManager {
     }
   }
 
-  async getPexelsVideos(query = 'nature', page = 1, perPage = 15) {
+  async getPexelsVideos(query = 'nature', page = 1, perPage = 30, orientation = 'landscape') {
     try {
-      const url = `${this.videosUrl}/search?query=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}&size=large&orientation=landscape`;
+      let url = `${this.videosUrl}/search?query=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}`;
+
+      // Add orientation filter if specified
+      if (orientation && orientation !== 'all') {
+        url += `&orientation=${orientation}`;
+      }
+
+      console.log('Fetching videos from:', url);
       return await this.makeRequest(url);
     } catch (error) {
       console.error('Error fetching Pexels videos:', error);

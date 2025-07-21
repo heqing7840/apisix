@@ -70,18 +70,18 @@ ipcMain.handle('set-setting', (event, key, value) => {
   return true;
 });
 
-ipcMain.handle('get-pexels-photos', async (event, query, page = 1) => {
+ipcMain.handle('get-pexels-photos', async (event, query, page = 1, perPage = 30, orientation = 'landscape') => {
   try {
-    return await wallpaperManager.getPexelsPhotos(query, page);
+    return await wallpaperManager.getPexelsPhotos(query, page, perPage, orientation);
   } catch (error) {
     console.error('Error fetching Pexels photos:', error);
     throw error;
   }
 });
 
-ipcMain.handle('get-pexels-videos', async (event, query, page = 1) => {
+ipcMain.handle('get-pexels-videos', async (event, query, page = 1, perPage = 30, orientation = 'landscape') => {
   try {
-    return await wallpaperManager.getPexelsVideos(query, page);
+    return await wallpaperManager.getPexelsVideos(query, page, perPage, orientation);
   } catch (error) {
     console.error('Error fetching Pexels videos:', error);
     throw error;
