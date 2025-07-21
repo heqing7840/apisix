@@ -68,11 +68,16 @@ A cross-platform desktop application for managing wallpapers with Pexels API int
      PEXELS_API_KEY=your_actual_api_key_here
      ```
 
-4. **Run the application**
+4. **Test the API connection (optional)**
+   ```bash
+   npm run test-api
+   ```
+
+5. **Run the application**
    ```bash
    # Development mode
    npm run dev
-   
+
    # Production mode
    npm start
    ```
@@ -183,23 +188,53 @@ wallpaper-app/
 
 ### Common Issues
 
-1. **API Key Not Working**
-   - Verify your Pexels API key is correct
-   - Check that the `.env` file is in the root directory
-   - Ensure no extra spaces in the API key
+1. **Limited Wallpapers Showing / Only 2 Pages**
+   - **Solution**: This was fixed in the latest update. Each page now loads 30 items instead of 15
+   - **Test**: Run `npm run test-api` to verify your API connection
+   - **Check**: Make sure you're using the latest version of the app
 
-2. **Wallpaper Not Setting**
-   - On macOS: Check System Preferences > Security & Privacy
-   - On Windows: Ensure the app has permission to modify system settings
+2. **Filtering Not Working**
+   - **Solution**: Orientation and type filters have been fixed
+   - **Note**: Filters now properly apply to both photos and videos
+   - **Try**: Switch between "All Types", "Photos", and "Videos" in the filter dropdown
 
-3. **Cache Issues**
-   - Use the "Clear Cache" button in settings
-   - Manually delete the cache folder if needed
+3. **Video Features Not Working**
+   - **Solution**: Video support has been enhanced with proper thumbnails and previews
+   - **Features**: Videos now show a play icon overlay and can be previewed in the modal
+   - **Note**: Video wallpaper setting is not yet supported (photos only)
 
-4. **Performance Issues**
-   - Reduce cache size in settings
-   - Disable video wallpapers if experiencing lag
-   - Close other resource-intensive applications
+4. **API Key Not Working**
+   - **Test**: Run `npm run test-api` to verify your API key
+   - **Check**: Verify your Pexels API key is correct in the `.env` file
+   - **Ensure**: No extra spaces or quotes around the API key
+   - **Rate Limits**: Free accounts have 200 requests/hour limit
+
+5. **No Wallpapers Loading**
+   - **Check Internet**: Ensure you have a stable internet connection
+   - **API Status**: Visit https://www.pexels.com/api/ to check if the service is down
+   - **Console**: Open Developer Tools (F12) and check for error messages
+   - **Test**: Try different search terms like "mountain", "forest", "ocean"
+
+6. **Wallpaper Not Setting**
+   - **macOS**: Check System Preferences > Security & Privacy > Accessibility
+   - **Windows**: Run the app as administrator if needed
+   - **File Path**: Ensure the downloaded image file exists and is accessible
+
+7. **Infinite Scroll Not Working**
+   - **Solution**: Scroll threshold has been reduced from 1000px to 500px
+   - **Try**: Scroll closer to the bottom of the page
+   - **Check**: Look for the loading indicator at the bottom
+
+8. **Cache Issues**
+   - **Clear Cache**: Use the "Clear Cache" button in settings
+   - **Manual**: Delete the `~/Wallpapers/Cache` folder manually if needed
+   - **Size**: Check cache size in settings (default limit: 500MB)
+
+9. **Performance Issues**
+   - **Cache**: Reduce cache size in settings
+   - **Videos**: Disable video loading if experiencing lag
+   - **Memory**: Close other resource-intensive applications
+   - **Hardware**: Ensure your system meets minimum requirements
 
 ### Logs
 Application logs are available in:
