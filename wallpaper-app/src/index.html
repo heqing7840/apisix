@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallpaper Manager</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="app-title">Wallpaper Manager</h1>
+                <div class="header-controls">
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Search wallpapers..." class="search-input">
+                        <button id="searchBtn" class="search-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <button id="settingsBtn" class="icon-btn" title="Settings">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <div class="nav-content">
+                <div class="nav-tabs">
+                    <button class="nav-tab active" data-tab="pexels">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21,15 16,10 5,21"></polyline>
+                        </svg>
+                        Pexels
+                    </button>
+                    <button class="nav-tab" data-tab="local">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                            <polyline points="13,2 13,9 20,9"></polyline>
+                        </svg>
+                        Local
+                    </button>
+                    <button class="nav-tab" data-tab="favorites">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
+                        </svg>
+                        Favorites
+                    </button>
+                </div>
+                <div class="nav-filters">
+                    <select id="typeFilter" class="filter-select">
+                        <option value="all">All Types</option>
+                        <option value="photos">Photos</option>
+                        <option value="videos">Videos</option>
+                    </select>
+                    <select id="orientationFilter" class="filter-select">
+                        <option value="landscape">Landscape</option>
+                        <option value="portrait">Portrait</option>
+                        <option value="square">Square</option>
+                    </select>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Pexels Tab -->
+            <div id="pexelsTab" class="tab-content active">
+                <div class="content-header">
+                    <h2>Nature Photography</h2>
+                    <p class="attribution">Photos and videos provided by <a href="#" id="pexelsLink">Pexels</a></p>
+                </div>
+                <div id="pexelsGrid" class="wallpaper-grid">
+                    <!-- Wallpapers will be loaded here -->
+                </div>
+                <div id="loadingIndicator" class="loading-indicator">
+                    <div class="spinner"></div>
+                    <p>Loading wallpapers...</p>
+                </div>
+            </div>
+
+            <!-- Local Tab -->
+            <div id="localTab" class="tab-content">
+                <div class="content-header">
+                    <h2>Local Wallpapers</h2>
+                    <button id="uploadBtn" class="primary-btn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7,10 12,15 17,10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Upload Wallpapers
+                    </button>
+                </div>
+                <div id="localGrid" class="wallpaper-grid">
+                    <!-- Local wallpapers will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Favorites Tab -->
+            <div id="favoritesTab" class="tab-content">
+                <div class="content-header">
+                    <h2>Favorite Wallpapers</h2>
+                </div>
+                <div id="favoritesGrid" class="wallpaper-grid">
+                    <!-- Favorite wallpapers will be loaded here -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Preview Modal -->
+        <div id="previewModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="previewTitle">Wallpaper Preview</h3>
+                    <button id="closePreview" class="close-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="previewContainer" class="preview-container">
+                        <!-- Preview content will be loaded here -->
+                    </div>
+                    <div class="preview-info">
+                        <p id="previewAttribution" class="attribution"></p>
+                        <div class="preview-actions">
+                            <button id="setWallpaperBtn" class="primary-btn">Set as Wallpaper</button>
+                            <button id="downloadBtn" class="secondary-btn">Download Only</button>
+                            <button id="favoriteBtn" class="icon-btn" title="Add to Favorites">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Settings</h3>
+                    <button id="closeSettings" class="close-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-section">
+                        <h4>Download Settings</h4>
+                        <div class="setting-item">
+                            <label for="downloadPath">Download Path:</label>
+                            <input type="text" id="downloadPath" class="setting-input" readonly>
+                            <button id="browseDownloadPath" class="secondary-btn">Browse</button>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <h4>Auto Wallpaper Change</h4>
+                        <div class="setting-item">
+                            <label for="autoChange">Enable Auto Change:</label>
+                            <input type="checkbox" id="autoChange" class="setting-checkbox">
+                        </div>
+                        <div class="setting-item">
+                            <label for="changeInterval">Change Interval:</label>
+                            <select id="changeInterval" class="setting-select">
+                                <option value="30">30 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="180">3 hours</option>
+                                <option value="720">12 hours</option>
+                                <option value="1440">24 hours</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <h4>Cache Management</h4>
+                        <div class="setting-item">
+                            <label>Cache Size:</label>
+                            <span id="cacheSize">Calculating...</span>
+                            <button id="clearCacheBtn" class="secondary-btn">Clear Cache</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toastContainer" class="toast-container"></div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
